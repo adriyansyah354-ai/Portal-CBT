@@ -1,0 +1,1264 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portal-CBT - Dynamic Link & QR Portal</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- QRCode.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <!-- Google Fonts Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .hide-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col antialiased">
+
+    <!-- GATEWAY / LOGIN VIEW -->
+    <section id="viewGateway" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/80 backdrop-blur-md p-4">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 sm:p-8 relative border border-slate-100 animate-fade-in">
+            <!-- App Brand Logo -->
+            <div class="text-center mb-6">
+                <div class="w-16 h-16 bg-emerald-600 rounded-2xl flex items-center justify-center text-white text-3xl mx-auto shadow-lg shadow-emerald-200 mb-3 brand-logo-icon">
+                    <i class="fa-solid fa-laptop-code"></i>
+                </div>
+                <img id="gatewayCustomLogo" class="w-16 h-16 object-contain mx-auto mb-3 hidden" alt="Logo Portal">
+                <h1 class="text-2xl font-black text-slate-800 tracking-tight">Portal-CBT</h1>
+                <p class="text-xs text-slate-500 mt-1">Portal Link &amp; Kode QR Ujian &amp; Kuis Interaktif</p>
+            </div>
+
+            <!-- Login Options -->
+            <div id="gatewayOptions" class="space-y-3">
+                <button onclick="enterAsStudent()" class="w-full py-3.5 px-4 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-xl shadow-md transition-all flex items-center justify-center gap-2 group">
+                    <i class="fa-solid fa-user-graduate text-lg group-hover:scale-110 transition-transform"></i>
+                    <span>Masuk sebagai Siswa</span>
+                </button>
+                <button onclick="showAdminLoginForm()" class="w-full py-3 px-4 bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium rounded-xl transition-all flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-user-shield text-slate-500"></i>
+                    <span>Masuk sebagai Admin / Guru</span>
+                </button>
+            </div>
+
+            <!-- Admin Login Form (Hidden by default) -->
+            <div id="adminLoginForm" class="hidden space-y-4 pt-2">
+                <div class="flex items-center justify-between border-b border-slate-100 pb-2 mb-2">
+                    <h2 class="text-sm font-bold text-slate-700 flex items-center gap-1.5">
+                        <i class="fa-solid fa-lock text-emerald-600"></i> Login Guru / Admin
+                    </h2>
+                    <button onclick="hideAdminLoginForm()" class="text-xs text-slate-400 hover:text-slate-600">
+                        <i class="fa-solid fa-xmark"></i> Batal
+                    </button>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">Username Admin</label>
+                    <input type="text" id="loginUsername" placeholder="Masukkan username" class="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">Password</label>
+                    <input type="password" id="loginPassword" placeholder="Masukkan password" class="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                </div>
+                <div id="loginErrorMsg" class="text-xs text-red-500 font-medium hidden">
+                    Username atau password salah!
+                </div>
+                <button onclick="handleAdminLogin()" class="w-full py-2.5 bg-slate-800 hover:bg-slate-900 text-white text-sm font-semibold rounded-lg shadow transition-all">
+                    Masuk Portal Admin
+                </button>
+            </div>
+
+            <!-- Gateway Copyright Footer -->
+            <div class="mt-6 pt-4 border-t border-slate-100 text-[11px] text-slate-400 text-center">
+                &copy; <span class="copyright-year">2026</span> <strong class="text-slate-600">Temply.ID</strong> By: <strong class="text-slate-600">MOHAMMAD ADRIYANSYAH</strong> &bull; Hak Cipta Dilindungi Undang-Undang
+            </div>
+        </div>
+    </section>
+
+    <!-- MAIN NAVIGATION HEADER -->
+    <header id="mainHeader" class="hidden bg-white border-b border-slate-200 sticky top-0 z-40 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
+            <!-- Brand Title -->
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 bg-emerald-600 rounded-xl flex items-center justify-center text-white text-xl shadow-md shadow-emerald-100 brand-logo-icon">
+                    <i class="fa-solid fa-laptop-code"></i>
+                </div>
+                <img id="headerCustomLogo" class="w-10 h-10 object-contain hidden" alt="Logo Header">
+                <div>
+                    <span class="text-lg font-black text-slate-800 tracking-tight block leading-tight">Portal-CBT</span>
+                    <span class="text-[10px] font-medium text-slate-500 uppercase tracking-wider block">Portal Ujian &amp; Media Pembelajaran</span>
+                </div>
+            </div>
+
+            <!-- Header Right Controls -->
+            <div class="flex items-center gap-2 sm:gap-3">
+                <span id="roleHeaderBadge" class="px-2.5 py-1 text-xs font-semibold rounded-full bg-emerald-100 text-emerald-800 flex items-center gap-1.5">
+                    <i class="fa-solid fa-circle-check text-[10px]"></i> Mode Siswa
+                </span>
+                
+                <button id="btnSwitchToAdmin" onclick="logoutToGateway()" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-lg transition-all flex items-center gap-1">
+                    <i class="fa-solid fa-right-to-bracket"></i> <span class="hidden sm:inline">Keluar / Switch</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- MAIN APP CONTENT -->
+    <main id="mainAppContent" class="hidden flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        
+        <!-- SISWA VIEW SECTION -->
+        <section id="sectionSiswaView" class="space-y-6">
+            <!-- Welcome Banner -->
+            <div class="bg-gradient-to-r from-emerald-600 to-teal-700 rounded-2xl p-6 sm:p-8 text-white shadow-xl relative overflow-hidden">
+                <div class="relative z-10 max-w-2xl">
+                    <span class="inline-block px-3 py-1 bg-white/20 backdrop-blur-md rounded-full text-xs font-semibold mb-3">Siswa &amp; Peserta Ujian Interaktif</span>
+                    <h2 class="text-2xl sm:text-3xl font-extrabold tracking-tight">Selamat Datang di Portal Kuis &amp; Ujian CBT! 👋</h2>
+                    <p class="text-emerald-100 text-sm mt-2">Pilih materi, kuis, atau ujian interaktif di bawah ini, lalu klik <strong class="text-white">Kerjakan</strong> atau scan kode QR-nya.</p>
+                    
+                    <div class="mt-5">
+                        <button onclick="openWaModal()" class="px-4 py-2.5 bg-white text-emerald-800 hover:bg-emerald-50 text-xs sm:text-sm font-bold rounded-xl shadow-lg transition-all flex items-center gap-2">
+                            <i class="fa-brands fa-whatsapp text-emerald-600 text-lg"></i>
+                            <span id="btnWaGuruText">Hubungi Bapak/Ibu Guru</span>
+                        </button>
+                    </div>
+                </div>
+                <i class="fa-solid fa-file-signature text-9xl absolute -right-6 -bottom-8 text-white/10 rotate-12 pointer-events-none"></i>
+            </div>
+
+            <!-- Filter & Search Controls -->
+            <div class="bg-white rounded-xl p-4 border border-slate-200 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-3">
+                <div class="flex flex-wrap items-center gap-2 w-full sm:w-auto">
+                    <!-- Subject Filter -->
+                    <select id="filterSubjectSiswa" onchange="renderSiswaContent()" class="text-xs sm:text-sm bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 font-medium focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                        <option value="ALL">Semua Mata Pelajaran</option>
+                        <option value="Matematika">Matematika</option>
+                        <option value="Bahasa Indonesia">Bahasa Indonesia</option>
+                        <option value="IPA">IPA / Sains</option>
+                        <option value="IPS">IPS / Sosial</option>
+                        <option value="Bahasa Inggris">Bahasa Inggris</option>
+                        <option value="Informatika">Informatika / TIK</option>
+                        <option value="PJOK">PJOK / Olahraga</option>
+                        <option value="PAI">Pendidikan Agama</option>
+                        <option value="Seni Budaya">Seni Budaya</option>
+                        <option value="Lainnya">Mata Pelajaran Lain</option>
+                    </select>
+
+                    <select id="filterCategorySiswa" onchange="renderSiswaContent()" class="text-xs sm:text-sm bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 font-medium focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                        <option value="ALL">Semua Jenis/Kategori</option>
+                        <option value="CBT">CBT Ujian</option>
+                        <option value="Kuis">Kuis Interaktif</option>
+                        <option value="LKPD">LKPD Digital</option>
+                        <option value="Game">Game Edukasi</option>
+                        <option value="Materi">Materi / Slide</option>
+                    </select>
+
+                    <select id="filterClassSiswa" onchange="renderSiswaContent()" class="text-xs sm:text-sm bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 font-medium focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                        <option value="ALL">Semua Tingkat/Kelas</option>
+                        <optgroup label="Tingkat SD">
+                            <option value="Kelas 1">Kelas 1 SD</option>
+                            <option value="Kelas 2">Kelas 2 SD</option>
+                            <option value="Kelas 3">Kelas 3 SD</option>
+                            <option value="Kelas 4">Kelas 4 SD</option>
+                            <option value="Kelas 5">Kelas 5 SD</option>
+                            <option value="Kelas 6">Kelas 6 SD</option>
+                        </optgroup>
+                        <optgroup label="Tingkat SMP">
+                            <option value="Kelas 7">Kelas 7 SMP</option>
+                            <option value="Kelas 8">Kelas 8 SMP</option>
+                            <option value="Kelas 9">Kelas 9 SMP</option>
+                        </optgroup>
+                        <optgroup label="Tingkat SMA/SMK">
+                            <option value="Kelas 10">Kelas 10 SMA/K</option>
+                            <option value="Kelas 11">Kelas 11 SMA/K</option>
+                            <option value="Kelas 12">Kelas 12 SMA/K</option>
+                        </optgroup>
+                        <option value="Umum">Umum / Semua Kelas</option>
+                    </select>
+                </div>
+                <div class="relative w-full sm:w-64">
+                    <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                    <input type="text" id="searchSiswa" onkeyup="renderSiswaContent()" placeholder="Cari materi / ujian..." class="w-full pl-8 pr-3 py-2 text-xs sm:text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                </div>
+            </div>
+
+            <!-- Content Cards Grid -->
+            <div id="siswaGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+                <!-- Cards rendered dynamically via JS -->
+            </div>
+        </section>
+
+        <!-- ADMIN GURU VIEW SECTION -->
+        <section id="sectionAdminView" class="hidden space-y-6">
+            <!-- Welcome Teacher Banner -->
+            <div class="bg-slate-800 text-white rounded-2xl p-6 shadow-md flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border border-slate-700">
+                <div>
+                    <span class="text-xs font-semibold text-emerald-400 uppercase tracking-widest block">Portal Administrasi Ujian &amp; Guru</span>
+                    <h2 class="text-2xl font-black mt-1" id="adminWelcomeTitle">Selamat Datang, Bapak/Ibu Guru!</h2>
+                    <p class="text-slate-400 text-xs mt-1" id="adminWelcomeNip">NIP: -</p>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button onclick="switchAdminTab('tabAddContent')" class="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl transition-all shadow flex items-center gap-1.5">
+                        <i class="fa-solid fa-plus"></i> Tambah Ujian / Konten
+                    </button>
+                </div>
+            </div>
+
+            <!-- Admin Nav Tabs -->
+            <div class="flex items-center border-b border-slate-200 space-x-2 overflow-x-auto hide-scrollbar">
+                <button id="btnTabListContent" onclick="switchAdminTab('tabListContent')" class="px-4 py-2.5 text-xs font-bold border-b-2 border-emerald-600 text-emerald-600 flex items-center gap-2 whitespace-nowrap">
+                    <i class="fa-solid fa-list-check"></i> Kelola Materi &amp; Ujian (<span id="countActiveItems">0</span>)
+                </button>
+                <button id="btnTabAddContent" onclick="switchAdminTab('tabAddContent')" class="px-4 py-2.5 text-xs font-bold border-b-2 border-transparent text-slate-500 hover:text-slate-700 flex items-center gap-2 whitespace-nowrap">
+                    <i class="fa-solid fa-square-plus"></i> Tambah Konten
+                </button>
+                <button id="btnTabTrash" onclick="switchAdminTab('tabTrash')" class="px-4 py-2.5 text-xs font-bold border-b-2 border-transparent text-slate-500 hover:text-slate-700 flex items-center gap-2 whitespace-nowrap">
+                    <i class="fa-solid fa-trash-can"></i> Riwayat / Sampah (<span id="countTrashItems">0</span>)
+                </button>
+                <button id="btnTabSettings" onclick="switchAdminTab('tabSettings')" class="px-4 py-2.5 text-xs font-bold border-b-2 border-transparent text-slate-500 hover:text-slate-700 flex items-center gap-2 whitespace-nowrap">
+                    <i class="fa-solid fa-gears"></i> Pengaturan
+                </button>
+            </div>
+
+            <!-- TAB 1: LIST CONTENT -->
+            <div id="tabListContent" class="space-y-4">
+                <div id="adminGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <!-- Dynamic Admin Item Cards -->
+                </div>
+            </div>
+
+            <!-- EDIT CONTENT MODAL -->
+            <div id="editModal" class="fixed inset-0 z-50 bg-slate-900/70 backdrop-blur-sm hidden flex items-center justify-center p-4">
+                <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl relative border border-slate-100 space-y-4">
+                    <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                        <h3 class="text-base font-bold text-slate-800 flex items-center gap-2">
+                            <i class="fa-solid fa-pen-to-square text-emerald-600"></i> Edit Materi / Ujian
+                        </h3>
+                        <button onclick="closeEditModal()" class="text-slate-400 hover:text-slate-600">
+                            <i class="fa-solid fa-xmark text-lg"></i>
+                        </button>
+                    </div>
+
+                    <input type="hidden" id="editItemId">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">Judul Materi / Ujian *</label>
+                        <input type="text" id="editTitle" class="w-full px-3 py-2 text-xs sm:text-sm border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1">Mata Pelajaran *</label>
+                            <select id="editSubject" class="w-full px-3 py-2 text-xs sm:text-sm border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                                <option value="Matematika">Matematika</option>
+                                <option value="Bahasa Indonesia">Bahasa Indonesia</option>
+                                <option value="IPA">IPA / Sains</option>
+                                <option value="IPS">IPS / Sosial</option>
+                                <option value="Bahasa Inggris">Bahasa Inggris</option>
+                                <option value="Informatika">Informatika / TIK</option>
+                                <option value="PJOK">PJOK / Olahraga</option>
+                                <option value="PAI">Pendidikan Agama</option>
+                                <option value="Seni Budaya">Seni Budaya</option>
+                                <option value="Lainnya">Lainnya</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1">Kategori *</label>
+                            <select id="editCategory" class="w-full px-3 py-2 text-xs sm:text-sm border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                                <option value="CBT">CBT Ujian</option>
+                                <option value="Kuis">Kuis Interaktif</option>
+                                <option value="LKPD">LKPD Digital</option>
+                                <option value="Game">Game Edukasi</option>
+                                <option value="Materi">Materi / Slide</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1">Tingkat / Kelas *</label>
+                            <select id="editClass" class="w-full px-3 py-2 text-xs sm:text-sm border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                                <option value="Kelas 1">Kelas 1 SD</option>
+                                <option value="Kelas 2">Kelas 2 SD</option>
+                                <option value="Kelas 3">Kelas 3 SD</option>
+                                <option value="Kelas 4">Kelas 4 SD</option>
+                                <option value="Kelas 5">Kelas 5 SD</option>
+                                <option value="Kelas 6">Kelas 6 SD</option>
+                                <option value="Kelas 7">Kelas 7 SMP</option>
+                                <option value="Kelas 8">Kelas 8 SMP</option>
+                                <option value="Kelas 9">Kelas 9 SMP</option>
+                                <option value="Kelas 10">Kelas 10 SMA/K</option>
+                                <option value="Kelas 11">Kelas 11 SMA/K</option>
+                                <option value="Kelas 12">Kelas 12 SMA/K</option>
+                                <option value="Umum">Umum / Semua Kelas</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">URL / Link Canva / Google Form / Embed Code *</label>
+                        <textarea id="editUrl" rows="3" class="w-full px-3 py-2 text-xs sm:text-sm border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:outline-none"></textarea>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">Deskripsi Singkat</label>
+                        <input type="text" id="editDesc" class="w-full px-3 py-2 text-xs sm:text-sm border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                    </div>
+
+                    <div class="pt-2 flex gap-2">
+                        <button onclick="saveEditContent()" class="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs sm:text-sm rounded-xl shadow transition-all">
+                            <i class="fa-solid fa-save mr-1"></i> Simpan Perubahan
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 2: ADD CONTENT -->
+            <div id="tabAddContent" class="hidden bg-white p-6 rounded-2xl border border-slate-200 shadow-sm max-w-2xl mx-auto space-y-4">
+                <h3 class="text-base font-bold text-slate-800 border-b border-slate-100 pb-3 flex items-center gap-2">
+                    <i class="fa-solid fa-link text-emerald-600"></i> Form Tambah Ujian CBT / Kuis / Link Canva Form
+                </h3>
+                
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">Judul Ujian / Kuis / Materi *</label>
+                    <input type="text" id="addTitle" placeholder="Contoh: CBT Ujian Akhir Semester Informatika Bab 1" class="w-full px-3 py-2 text-xs sm:text-sm border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">Mata Pelajaran *</label>
+                        <select id="addSubject" class="w-full px-3 py-2 text-xs sm:text-sm border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                            <option value="Informatika">Informatika / TIK</option>
+                            <option value="Matematika">Matematika</option>
+                            <option value="Bahasa Indonesia">Bahasa Indonesia</option>
+                            <option value="IPA">IPA / Sains</option>
+                            <option value="IPS">IPS / Sosial</option>
+                            <option value="Bahasa Inggris">Bahasa Inggris</option>
+                            <option value="PJOK">PJOK / Olahraga</option>
+                            <option value="PAI">Pendidikan Agama</option>
+                            <option value="Seni Budaya">Seni Budaya</option>
+                            <option value="Lainnya">Lainnya</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">Kategori *</label>
+                        <select id="addCategory" class="w-full px-3 py-2 text-xs sm:text-sm border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                            <option value="CBT">CBT Ujian</option>
+                            <option value="Kuis">Kuis Interaktif</option>
+                            <option value="LKPD">LKPD Digital</option>
+                            <option value="Game">Game Edukasi</option>
+                            <option value="Materi">Materi / Slide</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">Tingkat / Kelas *</label>
+                        <select id="addClass" class="w-full px-3 py-2 text-xs sm:text-sm border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                            <option value="Kelas 1">Kelas 1 SD</option>
+                            <option value="Kelas 2">Kelas 2 SD</option>
+                            <option value="Kelas 3">Kelas 3 SD</option>
+                            <option value="Kelas 4">Kelas 4 SD</option>
+                            <option value="Kelas 5">Kelas 5 SD</option>
+                            <option value="Kelas 6">Kelas 6 SD</option>
+                            <option value="Kelas 7">Kelas 7 SMP</option>
+                            <option value="Kelas 8">Kelas 8 SMP</option>
+                            <option value="Kelas 9">Kelas 9 SMP</option>
+                            <option value="Kelas 10">Kelas 10 SMA/K</option>
+                            <option value="Kelas 11">Kelas 11 SMA/K</option>
+                            <option value="Kelas 12">Kelas 12 SMA/K</option>
+                            <option value="Umum">Umum / Semua Kelas</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">URL / Link CBT / Canva / Google Form / Embed Code *</label>
+                    <textarea id="addUrl" rows="3" placeholder="Tempel URL Canva (.my.canva.site), Google Form, Quizizz, atau Kode Iframe Embed di sini..." class="w-full px-3 py-2 text-xs sm:text-sm border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:outline-none"></textarea>
+                    <p class="text-[11px] text-slate-400 mt-1">Dapat berupa link langsung (contoh: https://...) atau kode iframe.</p>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">Deskripsi Singkat (Opsional)</label>
+                    <input type="text" id="addDesc" placeholder="Penjelasan singkat mengenai soal ujian / kuis..." class="w-full px-3 py-2 text-xs sm:text-sm border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                </div>
+
+                <div class="pt-3 flex gap-2">
+                    <button onclick="saveNewContent()" class="flex-1 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs sm:text-sm rounded-xl shadow transition-all">
+                        <i class="fa-solid fa-save mr-1"></i> Simpan &amp; Generate QR Code
+                    </button>
+                </div>
+            </div>
+
+            <!-- TAB 3: TRASH / HISTORY -->
+            <div id="tabTrash" class="hidden space-y-4">
+                <div id="trashGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <!-- Dynamic Trash Items -->
+                </div>
+            </div>
+
+            <!-- TAB 4: SETTINGS -->
+            <div id="tabSettings" class="hidden bg-white p-6 rounded-2xl border border-slate-200 shadow-sm max-w-2xl mx-auto space-y-5">
+                <h3 class="text-base font-bold text-slate-800 border-b border-slate-100 pb-3 flex items-center gap-2">
+                    <i class="fa-solid fa-user-gear text-emerald-600"></i> Pengaturan Profil Guru &amp; Portal CBT
+                </h3>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">Nama Guru Lengkap &amp; Gelar</label>
+                    <input type="text" id="settingTeacherName" placeholder="Contoh: Budi Santoso, S.Pd." class="w-full px-3 py-2 text-xs sm:text-sm border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-500">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">NIP / NUPTK Guru</label>
+                    <input type="text" id="settingTeacherNip" placeholder="Contoh: 19850101 201001 1 001" class="w-full px-3 py-2 text-xs sm:text-sm border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-500">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">Nomor WhatsApp Guru (Untuk Fitur Bantuan Siswa)</label>
+                    <input type="text" id="settingTeacherWa" placeholder="085655894533" class="w-full px-3 py-2 text-xs sm:text-sm border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-500">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">Upload Logo Portal Custom</label>
+                    <div class="flex items-center gap-3">
+                        <input type="file" id="settingLogoFile" accept="image/*" onchange="handleLogoUpload(event)" class="block w-full text-xs text-slate-500 file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100 cursor-pointer border border-slate-200 rounded-lg">
+                        <button id="btnRemoveLogo" onclick="removeCustomLogo()" type="button" class="hidden px-3 py-2 bg-red-50 hover:bg-red-100 text-red-600 text-xs font-semibold rounded-lg shrink-0">
+                            <i class="fa-solid fa-trash-can"></i> Hapus Logo
+                        </button>
+                    </div>
+                    <div id="logoPreviewContainer" class="mt-2 hidden flex items-center gap-2">
+                        <span class="text-[11px] text-slate-500">Preview Logo:</span>
+                        <img id="logoPreviewImg" class="w-12 h-12 object-contain border border-slate-200 rounded-lg p-1 bg-white" alt="Preview Logo">
+                    </div>
+                </div>
+
+                <hr class="border-slate-100">
+
+                <div class="space-y-3">
+                    <h4 class="text-xs font-bold text-slate-700 uppercase tracking-wider">Ubah Kredensial Login Admin</h4>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 mb-1">Username Admin Baru</label>
+                            <input type="text" id="settingAdminUser" class="w-full px-3 py-2 text-xs sm:text-sm border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-500">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 mb-1">Password Admin Baru</label>
+                            <input type="password" id="settingAdminPass" class="w-full px-3 py-2 text-xs sm:text-sm border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-500">
+                        </div>
+                    </div>
+                </div>
+
+                <hr class="border-slate-100">
+
+                <div class="space-y-3">
+                    <h4 class="text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
+                        <i class="fa-solid fa-database text-emerald-600"></i> Backup &amp; Restore Data (Tanpa Database)
+                    </h4>
+                    <p class="text-xs text-slate-500 leading-relaxed">
+                        Semua data tersimpan otomatis di perangkat ini (LocalStorage). Gunakan fitur Export untuk menyimpan cadangan file data ke komputer/HP Anda, atau Import untuk memindahkan data ke perangkat lain.
+                    </p>
+                    <div class="flex flex-col sm:flex-row items-center gap-2 pt-1">
+                        <button onclick="exportBackupData()" type="button" class="w-full sm:w-auto px-4 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-download"></i> Download Backup Data (JSON)
+                        </button>
+                        <label class="w-full sm:w-auto px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 text-xs font-bold rounded-xl transition-all cursor-pointer flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-upload"></i> Restore / Import Data (JSON)
+                            <input type="file" id="importBackupFile" accept=".json" onchange="importBackupData(event)" class="hidden">
+                        </label>
+                    </div>
+                </div>
+
+                <div class="pt-3">
+                    <button onclick="saveSettings()" class="w-full py-2.5 bg-slate-800 hover:bg-slate-900 text-white text-xs sm:text-sm font-bold rounded-xl shadow transition-all">
+                        Simpan Pengaturan
+                    </button>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- MAIN FOOTER / HAK CIPTA -->
+    <footer id="mainFooter" class="hidden border-t border-slate-200 bg-white py-6 mt-auto text-center text-xs text-slate-500">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-center">
+            <p>&copy; <span class="copyright-year">2026</span> <strong class="text-slate-700">Temply.ID</strong> By: <strong class="text-slate-700">MOHAMMAD ADRIYANSYAH</strong>. Hak Cipta Dilindungi Undang-Undang.</p>
+        </div>
+    </footer>
+
+    <!-- QR CODE MODAL -->
+    <div id="qrModal" class="fixed inset-0 z-50 bg-slate-900/70 backdrop-blur-sm hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-sm w-full p-6 text-center shadow-2xl relative border border-slate-100">
+            <button onclick="closeQrModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 text-lg">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+            <h3 id="qrModalTitle" class="font-black text-slate-800 text-lg pr-6">Judul Materi</h3>
+            <p id="qrModalClass" class="text-xs text-slate-500 mb-4">Kelas / Kategori</p>
+            
+            <div class="bg-slate-50 p-4 rounded-xl inline-block border border-slate-200 shadow-inner mb-4">
+                <div id="qrcodeCanvas" class="mx-auto flex justify-center"></div>
+            </div>
+
+            <p class="text-xs text-slate-500 mb-4">Scan QR code di atas dengan kamera HP siswa untuk langsung membuka materi.</p>
+            
+            <div class="space-y-2">
+                <button onclick="copyQrLink()" class="w-full py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-xs font-bold rounded-lg transition-all flex items-center justify-center gap-1.5">
+                    <i class="fa-solid fa-copy"></i> Salin Direct Link Canva
+                </button>
+                <button onclick="closeQrModal()" class="w-full py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-lg">
+                    Tutup
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- WHATSAPP GURU MODAL -->
+    <div id="waModal" class="fixed inset-0 z-50 bg-slate-900/70 backdrop-blur-sm hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl relative border border-slate-100">
+            <button onclick="closeWaModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 text-lg">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+            <div class="flex items-center gap-2 mb-4">
+                <div class="w-8 h-8 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center text-lg">
+                    <i class="fa-brands fa-whatsapp"></i>
+                </div>
+                <div>
+                    <h3 class="font-bold text-slate-800 text-sm">Pesan WhatsApp Ke Guru</h3>
+                    <p class="text-[11px] text-slate-500" id="waTeacherTarget">Guru</p>
+                </div>
+            </div>
+
+            <div class="space-y-3 text-xs">
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">Pilih Topik Pesan *</label>
+                    <select id="waTopic" onchange="updateWaFormFields()" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                        <option value="1">1. Kendala saat ujian</option>
+                        <option value="2">2. Tidak bisa ikut ujian</option>
+                        <option value="3">3. Kendala teknis</option>
+                        <option value="4">4. Izin tidak mengikuti</option>
+                        <option value="5">5. Lain-lain / Pertanyaan</option>
+                    </select>
+                </div>
+
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="block font-semibold text-slate-600 mb-1">Nama Siswa *</label>
+                        <input type="text" id="waNamaSiswa" placeholder="Nama lengkap" class="w-full px-2.5 py-1.5 border border-slate-200 rounded-lg">
+                    </div>
+                    <div>
+                        <label class="block font-semibold text-slate-600 mb-1">Kelas *</label>
+                        <input type="text" id="waKelas" placeholder="Misal: 5A" class="w-full px-2.5 py-1.5 border border-slate-200 rounded-lg">
+                    </div>
+                </div>
+
+                <div id="waFieldUjian" class="space-y-1">
+                    <label class="block font-semibold text-slate-600">Nama Ujian / Kuis *</label>
+                    <input type="text" id="waNamaUjian" placeholder="Contoh: CBT Ujian Bab 1" class="w-full px-2.5 py-1.5 border border-slate-200 rounded-lg">
+                </div>
+
+                <div id="waFieldDetail" class="space-y-1">
+                    <label id="waFieldDetailLabel" class="block font-semibold text-slate-600">Kendala yang Dialami *</label>
+                    <textarea id="waDetailPesan" rows="2" placeholder="Tuliskan di sini..." class="w-full px-2.5 py-1.5 border border-slate-200 rounded-lg"></textarea>
+                </div>
+
+                <button onclick="sendWaMessage()" class="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl shadow transition-all flex items-center justify-center gap-2 mt-2">
+                    <i class="fa-brands fa-whatsapp text-lg"></i> Kirim Pesan WhatsApp
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const DEFAULT_SETTINGS = {
+            teacherName: "Budi Santoso, S.Pd.",
+            teacherNip: "19850101 201001 1 001",
+            teacherWa: "085655894533",
+            logoUrl: "",
+            adminUser: "admin",
+            adminPass: "admin123"
+        };
+
+        const INITIAL_ITEMS = [
+            {
+                id: "cbt-simulasi-1",
+                title: "Simulasi Ujian CBT Interaktif",
+                subject: "Informatika",
+                category: "CBT",
+                targetClass: "Kelas 5",
+                url: "https://pengumuman-kelulusan-sd-negeri-paron.my.canva.site/cbt-pjok-sd-negeri-paron",
+                desc: "Latihan dan soal Ujian Online Interaktif Portal-CBT."
+            }
+        ];
+
+        let appState = {
+            role: "guest",
+            settings: { ...DEFAULT_SETTINGS },
+            items: [],
+            trash: [],
+            activeTab: "tabListContent",
+            currentQrUrl: ""
+        };
+
+        window.onload = function() {
+            loadFromStorage();
+            updateCopyrightYear();
+            applyBranding();
+            fillSettingsForm();
+        };
+
+        function updateCopyrightYear() {
+            const currentYear = new Date().getFullYear();
+            document.querySelectorAll('.copyright-year').forEach(el => el.innerText = currentYear);
+        }
+
+        function loadFromStorage() {
+            const savedSettings = localStorage.getItem('portal_cbt_settings') || localStorage.getItem('portal_pjok_settings');
+            if (savedSettings) {
+                try {
+                    appState.settings = Object.assign({}, DEFAULT_SETTINGS, JSON.parse(savedSettings));
+                } catch(e) {
+                    appState.settings = { ...DEFAULT_SETTINGS };
+                }
+            } else {
+                localStorage.setItem('portal_cbt_settings', JSON.stringify(DEFAULT_SETTINGS));
+            }
+
+            const savedItems = localStorage.getItem('portal_cbt_data') || localStorage.getItem('portal_pjok_data');
+            if (savedItems) {
+                try {
+                    appState.items = JSON.parse(savedItems);
+                } catch(e) {
+                    appState.items = INITIAL_ITEMS;
+                }
+            } else {
+                appState.items = INITIAL_ITEMS;
+                localStorage.setItem('portal_cbt_data', JSON.stringify(INITIAL_ITEMS));
+            }
+
+            const savedTrash = localStorage.getItem('portal_cbt_trash') || localStorage.getItem('portal_pjok_trash');
+            if (savedTrash) {
+                try {
+                    appState.trash = JSON.parse(savedTrash);
+                } catch(e) {
+                    appState.trash = [];
+                }
+            }
+        }
+
+        function saveItemsToStorage() {
+            localStorage.setItem('portal_cbt_data', JSON.stringify(appState.items));
+            localStorage.setItem('portal_cbt_trash', JSON.stringify(appState.trash));
+            localStorage.setItem('portal_cbt_settings', JSON.stringify(appState.settings));
+        }
+
+        function applyBranding() {
+            const customLogo = appState.settings.logoUrl;
+            document.querySelectorAll('.brand-logo-icon').forEach(el => {
+                if (customLogo) el.classList.add('hidden');
+                else el.classList.remove('hidden');
+            });
+
+            ['gatewayCustomLogo', 'headerCustomLogo'].forEach(id => {
+                const img = document.getElementById(id);
+                if (img) {
+                    if (customLogo) {
+                        img.src = customLogo;
+                        img.classList.remove('hidden');
+                    } else {
+                        img.classList.add('hidden');
+                    }
+                }
+            });
+
+            const btnWa = document.getElementById('btnWaGuruText');
+            if (btnWa) btnWa.innerText = `Hubungi ${appState.settings.teacherName || 'Bapak/Ibu Guru'}`;
+        }
+
+        function fillSettingsForm() {
+            const s = appState.settings;
+            if (document.getElementById('settingTeacherName')) document.getElementById('settingTeacherName').value = s.teacherName || '';
+            if (document.getElementById('settingTeacherNip')) document.getElementById('settingTeacherNip').value = s.teacherNip || '';
+            if (document.getElementById('settingTeacherWa')) document.getElementById('settingTeacherWa').value = s.teacherWa || '';
+            if (document.getElementById('settingAdminUser')) document.getElementById('settingAdminUser').value = s.adminUser || 'admin';
+            if (document.getElementById('settingAdminPass')) document.getElementById('settingAdminPass').value = s.adminPass || 'admin123';
+            
+            const logoPreviewContainer = document.getElementById('logoPreviewContainer');
+            const logoPreviewImg = document.getElementById('logoPreviewImg');
+            const btnRemoveLogo = document.getElementById('btnRemoveLogo');
+            
+            if (s.logoUrl) {
+                if (logoPreviewImg) logoPreviewImg.src = s.logoUrl;
+                if (logoPreviewContainer) logoPreviewContainer.classList.remove('hidden');
+                if (btnRemoveLogo) btnRemoveLogo.classList.remove('hidden');
+            } else {
+                if (logoPreviewContainer) logoPreviewContainer.classList.add('hidden');
+                if (btnRemoveLogo) btnRemoveLogo.classList.add('hidden');
+            }
+        }
+
+        function enterAsStudent() {
+            appState.role = "student";
+            document.getElementById('viewGateway').classList.add('hidden');
+            document.getElementById('mainHeader').classList.remove('hidden');
+            document.getElementById('mainAppContent').classList.remove('hidden');
+            document.getElementById('mainFooter').classList.remove('hidden');
+            
+            document.getElementById('sectionSiswaView').classList.remove('hidden');
+            document.getElementById('sectionAdminView').classList.add('hidden');
+            
+            document.getElementById('roleHeaderBadge').className = "px-2.5 py-1 text-xs font-semibold rounded-full bg-emerald-100 text-emerald-800 flex items-center gap-1.5";
+            document.getElementById('roleHeaderBadge').innerHTML = '<i class="fa-solid fa-circle-check text-[10px]"></i> Mode Siswa';
+            
+            renderSiswaContent();
+        }
+
+        function showAdminLoginForm() {
+            document.getElementById('gatewayOptions').classList.add('hidden');
+            document.getElementById('adminLoginForm').classList.remove('hidden');
+            document.getElementById('loginErrorMsg').classList.add('hidden');
+        }
+
+        function hideAdminLoginForm() {
+            document.getElementById('gatewayOptions').classList.remove('hidden');
+            document.getElementById('adminLoginForm').classList.add('hidden');
+        }
+
+        function handleAdminLogin() {
+            const userIn = document.getElementById('loginUsername').value.trim();
+            const passIn = document.getElementById('loginPassword').value.trim();
+            const s = appState.settings;
+            
+            if (userIn === s.adminUser && passIn === s.adminPass) {
+                appState.role = "admin";
+                document.getElementById('loginUsername').value = '';
+                document.getElementById('loginPassword').value = '';
+                document.getElementById('loginErrorMsg').classList.add('hidden');
+                
+                document.getElementById('viewGateway').classList.add('hidden');
+                document.getElementById('mainHeader').classList.remove('hidden');
+                document.getElementById('mainAppContent').classList.remove('hidden');
+                document.getElementById('mainFooter').classList.remove('hidden');
+                
+                document.getElementById('sectionSiswaView').classList.add('hidden');
+                document.getElementById('sectionAdminView').classList.remove('hidden');
+                
+                document.getElementById('roleHeaderBadge').className = "px-2.5 py-1 text-xs font-semibold rounded-full bg-slate-800 text-white flex items-center gap-1.5";
+                document.getElementById('roleHeaderBadge').innerHTML = '<i class="fa-solid fa-user-shield text-[10px] text-emerald-400"></i> Mode Admin Guru';
+                
+                document.getElementById('adminWelcomeTitle').innerText = `Selamat Datang, ${s.teacherName || 'Bapak/Ibu Guru'}!`;
+                document.getElementById('adminWelcomeNip').innerText = `NIP: ${s.teacherNip || '-'}`;
+                
+                switchAdminTab('tabListContent');
+            } else {
+                document.getElementById('loginErrorMsg').classList.remove('hidden');
+            }
+        }
+
+        function logoutToGateway() {
+            appState.role = "guest";
+            document.getElementById('mainHeader').classList.add('hidden');
+            document.getElementById('mainAppContent').classList.add('hidden');
+            document.getElementById('mainFooter').classList.add('hidden');
+            document.getElementById('viewGateway').classList.remove('hidden');
+            hideAdminLoginForm();
+        }
+
+        function switchAdminTab(tabId) {
+            appState.activeTab = tabId;
+            const tabs = ['tabListContent', 'tabAddContent', 'tabTrash', 'tabSettings'];
+            tabs.forEach(t => {
+                const el = document.getElementById(t);
+                const btn = document.getElementById('btn' + t.charAt(0).toUpperCase() + t.slice(1));
+                if (el) {
+                    if (t === tabId) {
+                        el.classList.remove('hidden');
+                    } else {
+                        el.classList.add('hidden');
+                    }
+                }
+                if (btn) {
+                    if (t === tabId) {
+                        btn.className = "px-4 py-2.5 text-xs font-bold border-b-2 border-emerald-600 text-emerald-600 flex items-center gap-2 whitespace-nowrap";
+                    } else {
+                        btn.className = "px-4 py-2.5 text-xs font-bold border-b-2 border-transparent text-slate-500 hover:text-slate-700 flex items-center gap-2 whitespace-nowrap";
+                    }
+                }
+            });
+
+            if (tabId === 'tabListContent' || tabId === 'tabTrash') {
+                renderAdminContent();
+            } else if (tabId === 'tabSettings') {
+                fillSettingsForm();
+            }
+        }
+
+        function renderSiswaContent() {
+            const subj = document.getElementById('filterSubjectSiswa') ? document.getElementById('filterSubjectSiswa').value : 'ALL';
+            const cat = document.getElementById('filterCategorySiswa').value;
+            const cls = document.getElementById('filterClassSiswa').value;
+            const q = document.getElementById('searchSiswa').value.toLowerCase();
+
+            const grid = document.getElementById('siswaGrid');
+            grid.innerHTML = '';
+
+            const filtered = appState.items.filter(item => {
+                const matchSubj = subj === 'ALL' || item.subject === subj || !item.subject;
+                const matchCat = cat === 'ALL' || item.category === cat;
+                const matchCls = cls === 'ALL' || item.targetClass === cls;
+                const matchQ = item.title.toLowerCase().includes(q) || (item.desc && item.desc.toLowerCase().includes(q));
+                return matchSubj && matchCat && matchCls && matchQ;
+            });
+
+            if (filtered.length === 0) {
+                grid.innerHTML = `
+                    <div class="col-span-full text-center py-12 bg-white rounded-2xl border border-slate-200">
+                        <i class="fa-solid fa-folder-open text-4xl text-slate-300 mb-2"></i>
+                        <p class="text-sm font-bold text-slate-600">Belum ada kuis atau ujian.</p>
+                        <p class="text-xs text-slate-400">Silakan pilih kategori, mata pelajaran, atau kata kunci lain.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            filtered.forEach(item => {
+                const card = document.createElement('div');
+                card.className = "bg-white rounded-2xl p-5 border border-slate-200 shadow-sm hover:shadow-md transition-all flex flex-col justify-between group";
+                card.innerHTML = `
+                    <div>
+                        <div class="flex items-center justify-between gap-2 mb-2">
+                            <div class="flex items-center gap-1.5 flex-wrap">
+                                <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 uppercase">${item.category || 'CBT'}</span>
+                                ${item.subject ? `<span class="px-2 py-0.5 rounded-full text-[10px] font-medium bg-slate-100 text-slate-600">${item.subject}</span>` : ''}
+                            </div>
+                            <span class="text-xs font-semibold text-slate-400">${item.targetClass}</span>
+                        </div>
+                        <h3 class="font-extrabold text-slate-800 text-base group-hover:text-emerald-600 transition-colors line-clamp-2 mb-1">${item.title}</h3>
+                        <p class="text-xs text-slate-500 line-clamp-2 mb-4">${item.desc || 'Tidak ada deskripsi.'}</p>
+                    </div>
+                    <div class="flex items-center gap-2 pt-3 border-t border-slate-100">
+                        <button onclick="openDirectContent('${encodeURIComponent(item.url)}')" class="flex-1 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl shadow transition-all flex items-center justify-center gap-1.5">
+                            <i class="fa-solid fa-play"></i> Kerjakan
+                        </button>
+                        <button onclick="openQrModal('${item.id}')" class="p-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs rounded-xl transition-all" title="Scan QR Code">
+                            <i class="fa-solid fa-qrcode text-base"></i>
+                        </button>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        function renderAdminContent() {
+            document.getElementById('countActiveItems').innerText = appState.items.length;
+            document.getElementById('countTrashItems').innerText = appState.trash.length;
+
+            const adminGrid = document.getElementById('adminGrid');
+            adminGrid.innerHTML = '';
+            if (appState.items.length === 0) {
+                adminGrid.innerHTML = '<p class="col-span-full text-center text-xs text-slate-400 py-8">Belum ada materi atau ujian aktif.</p>';
+            } else {
+                appState.items.forEach(item => {
+                    const card = document.createElement('div');
+                    card.className = "bg-white rounded-xl p-4 border border-slate-200 shadow-sm flex flex-col justify-between";
+                    card.innerHTML = `
+                        <div>
+                            <div class="flex items-center justify-between gap-1 mb-1">
+                                <div class="flex items-center gap-1">
+                                    <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-800 uppercase">${item.category}</span>
+                                    ${item.subject ? `<span class="px-2 py-0.5 rounded text-[10px] font-medium bg-slate-100 text-slate-600">${item.subject}</span>` : ''}
+                                </div>
+                                <span class="text-[11px] font-semibold text-slate-400">${item.targetClass}</span>
+                            </div>
+                            <h4 class="font-bold text-slate-800 text-sm line-clamp-1">${item.title}</h4>
+                            <p class="text-xs text-slate-500 line-clamp-1 mb-3">${item.desc || '-'}</p>
+                        </div>
+                        <div class="flex items-center gap-1.5 pt-2 border-t border-slate-100 flex-wrap">
+                            <button onclick="openQrModal('${item.id}')" class="px-2.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs rounded-lg font-semibold flex items-center gap-1">
+                                <i class="fa-solid fa-qrcode"></i> QR
+                            </button>
+                            <button onclick="openEditModal('${item.id}')" class="px-2.5 py-1.5 bg-amber-50 hover:bg-amber-100 text-amber-700 text-xs rounded-lg font-semibold flex items-center gap-1">
+                                <i class="fa-solid fa-pen-to-square"></i> Edit
+                            </button>
+                            <button onclick="openDirectContent('${encodeURIComponent(item.url)}')" class="px-2.5 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-xs rounded-lg font-semibold flex items-center gap-1">
+                                <i class="fa-solid fa-arrow-up-right-from-square"></i> Tes
+                            </button>
+                            <button onclick="deleteContent('${item.id}')" class="ml-auto px-2 py-1.5 bg-red-50 hover:bg-red-100 text-red-600 text-xs rounded-lg font-semibold" title="Hapus">
+                                <i class="fa-solid fa-trash-can"></i>
+                            </button>
+                        </div>
+                    `;
+                    adminGrid.appendChild(card);
+                });
+            }
+
+            const trashGrid = document.getElementById('trashGrid');
+            trashGrid.innerHTML = '';
+            if (appState.trash.length === 0) {
+                trashGrid.innerHTML = '<p class="col-span-full text-center text-xs text-slate-400 py-8">Riwayat sampah kosong.</p>';
+            } else {
+                appState.trash.forEach(item => {
+                    const card = document.createElement('div');
+                    card.className = "bg-white rounded-xl p-4 border border-slate-200 shadow-sm opacity-75";
+                    card.innerHTML = `
+                        <h4 class="font-bold text-slate-800 text-sm line-clamp-1">${item.title}</h4>
+                        <p class="text-xs text-slate-400 mb-3">${item.subject ? item.subject + ' &bull; ' : ''}${item.category} &bull; ${item.targetClass}</p>
+                        <div class="flex items-center gap-2 pt-2 border-t border-slate-100">
+                            <button onclick="restoreContent('${item.id}')" class="px-2.5 py-1 bg-emerald-100 hover:bg-emerald-200 text-emerald-800 text-xs rounded-lg font-semibold">
+                                Pulihkan
+                            </button>
+                            <button onclick="deletePermanently('${item.id}')" class="px-2.5 py-1 bg-red-100 hover:bg-red-200 text-red-700 text-xs rounded-lg font-semibold">
+                                Hapus Permanen
+                            </button>
+                        </div>
+                    `;
+                    trashGrid.appendChild(card);
+                });
+            }
+        }
+
+        function extractUrl(raw) {
+            if (!raw) return '';
+            const iframeSrcMatch = raw.match(/src=["']([^"']+)["']/i);
+            if (iframeSrcMatch && iframeSrcMatch[1]) {
+                return iframeSrcMatch[1];
+            }
+            return raw.trim();
+        }
+
+        function saveNewContent() {
+            const title = document.getElementById('addTitle').value.trim();
+            const subject = document.getElementById('addSubject').value;
+            const category = document.getElementById('addCategory').value;
+            const targetClass = document.getElementById('addClass').value;
+            const rawUrl = document.getElementById('addUrl').value.trim();
+            const desc = document.getElementById('addDesc').value.trim();
+
+            if (!title || !rawUrl) {
+                alert('Judul dan Link Canva/Form wajib diisi!');
+                return;
+            }
+
+            const cleanUrl = extractUrl(rawUrl);
+
+            const newItem = {
+                id: 'item-' + Date.now(),
+                title,
+                subject,
+                category,
+                targetClass,
+                url: cleanUrl,
+                desc
+            };
+
+            appState.items.unshift(newItem);
+            saveItemsToStorage();
+
+            document.getElementById('addTitle').value = '';
+            document.getElementById('addUrl').value = '';
+            document.getElementById('addDesc').value = '';
+
+            switchAdminTab('tabListContent');
+        }
+
+        function openEditModal(id) {
+            const item = appState.items.find(i => i.id === id);
+            if (!item) return;
+
+            document.getElementById('editItemId').value = item.id;
+            document.getElementById('editTitle').value = item.title;
+            document.getElementById('editSubject').value = item.subject || 'Informatika';
+            document.getElementById('editCategory').value = item.category;
+            document.getElementById('editClass').value = item.targetClass;
+            document.getElementById('editUrl').value = item.url;
+            document.getElementById('editDesc').value = item.desc || '';
+
+            document.getElementById('editModal').classList.remove('hidden');
+        }
+
+        function closeEditModal() {
+            document.getElementById('editModal').classList.add('hidden');
+        }
+
+        function saveEditContent() {
+            const id = document.getElementById('editItemId').value;
+            const item = appState.items.find(i => i.id === id);
+            if (!item) return;
+
+            const title = document.getElementById('editTitle').value.trim();
+            const rawUrl = document.getElementById('editUrl').value.trim();
+
+            if (!title || !rawUrl) {
+                alert('Judul dan URL wajib diisi!');
+                return;
+            }
+
+            item.title = title;
+            item.subject = document.getElementById('editSubject').value;
+            item.category = document.getElementById('editCategory').value;
+            item.targetClass = document.getElementById('editClass').value;
+            item.url = extractUrl(rawUrl);
+            item.desc = document.getElementById('editDesc').value.trim();
+
+            saveItemsToStorage();
+            renderAdminContent();
+            closeEditModal();
+        }
+
+        function deleteContent(id) {
+            const idx = appState.items.findIndex(i => i.id === id);
+            if (idx !== -1) {
+                const item = appState.items.splice(idx, 1)[0];
+                appState.trash.unshift(item);
+                saveItemsToStorage();
+                renderAdminContent();
+            }
+        }
+
+        function restoreContent(id) {
+            const idx = appState.trash.findIndex(i => i.id === id);
+            if (idx !== -1) {
+                const item = appState.trash.splice(idx, 1)[0];
+                appState.items.unshift(item);
+                saveItemsToStorage();
+                renderAdminContent();
+            }
+        }
+
+        function deletePermanently(id) {
+            if (confirm('Apakah Anda yakin ingin menghapus permanen item ini?')) {
+                appState.trash = appState.trash.filter(i => i.id !== id);
+                saveItemsToStorage();
+                renderAdminContent();
+            }
+        }
+
+        function openDirectContent(encodedUrl) {
+            const url = decodeURIComponent(encodedUrl);
+            window.open(url, '_blank');
+        }
+
+        function openQrModal(id) {
+            const item = appState.items.find(i => i.id === id);
+            if (!item) return;
+
+            document.getElementById('qrModalTitle').innerText = item.title;
+            document.getElementById('qrModalClass').innerText = `${item.targetClass} • ${item.category} (${item.subject || 'Umum'})`;
+
+            const qrContainer = document.getElementById('qrcodeCanvas');
+            qrContainer.innerHTML = '';
+
+            appState.currentQrUrl = item.url;
+
+            new QRCode(qrContainer, {
+                text: item.url,
+                width: 180,
+                height: 180,
+                colorDark : "#0f172a",
+                colorLight : "#ffffff",
+                correctLevel : QRCode.CorrectLevel.H
+            });
+
+            document.getElementById('qrModal').classList.remove('hidden');
+        }
+
+        function closeQrModal() {
+            document.getElementById('qrcodeCanvas').innerHTML = '';
+            document.getElementById('qrModal').classList.add('hidden');
+        }
+
+        function copyQrLink() {
+            if (!appState.currentQrUrl) return;
+            const tempInput = document.createElement('input');
+            tempInput.value = appState.currentQrUrl;
+            document.body.appendChild(tempInput);
+            tempInput.select();
+            document.execCommand('copy');
+            document.body.removeChild(tempInput);
+            alert('Direct link Canva / Form berhasil disalin!');
+        }
+
+        function handleLogoUpload(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            if (file.size > 2 * 1024 * 1024) {
+                alert('Ukuran file logo terlalu besar! Maksimal 2MB.');
+                return;
+            }
+            const reader = new FileReader();
+            reader.onload = function(evt) {
+                appState.settings.logoUrl = evt.target.result;
+                saveItemsToStorage();
+                applyBranding();
+                fillSettingsForm();
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function removeCustomLogo() {
+            appState.settings.logoUrl = "";
+            document.getElementById('settingLogoFile').value = "";
+            saveItemsToStorage();
+            applyBranding();
+            fillSettingsForm();
+        }
+
+        function saveSettings() {
+            const name = document.getElementById('settingTeacherName').value.trim();
+            const nip = document.getElementById('settingTeacherNip').value.trim();
+            const wa = document.getElementById('settingTeacherWa').value.trim();
+            const user = document.getElementById('settingAdminUser').value.trim();
+            const pass = document.getElementById('settingAdminPass').value.trim();
+
+            if (!user || !pass) {
+                alert('Username dan Password Admin tidak boleh kosong!');
+                return;
+            }
+
+            appState.settings.teacherName = name;
+            appState.settings.teacherNip = nip;
+            appState.settings.teacherWa = wa;
+            appState.settings.adminUser = user;
+            appState.settings.adminPass = pass;
+
+            saveItemsToStorage();
+            applyBranding();
+
+            document.getElementById('adminWelcomeTitle').innerText = `Selamat Datang, ${name || 'Bapak/Ibu Guru'}!`;
+            document.getElementById('adminWelcomeNip').innerText = `NIP: ${nip || '-'}`;
+
+            alert('Pengaturan berhasil disimpan!');
+        }
+
+        function exportBackupData() {
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(appState, null, 2));
+            const downloadAnchor = document.createElement('a');
+            downloadAnchor.setAttribute("href", dataStr);
+            downloadAnchor.setAttribute("download", `backup_portal_cbt_${new Date().toISOString().slice(0,10)}.json`);
+            document.body.appendChild(downloadAnchor);
+            downloadAnchor.click();
+            downloadAnchor.remove();
+        }
+
+        function importBackupData(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(evt) {
+                try {
+                    const parsed = JSON.parse(evt.target.result);
+                    if (parsed.settings) appState.settings = parsed.settings;
+                    if (parsed.items) appState.items = parsed.items;
+                    if (parsed.trash) appState.trash = parsed.trash;
+                    saveItemsToStorage();
+                    applyBranding();
+                    renderAdminContent();
+                    fillSettingsForm();
+                    alert('Data backup berhasil di-restore!');
+                } catch (err) {
+                    alert('Format file JSON backup tidak valid!');
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        function openWaModal() {
+            document.getElementById('waTeacherTarget').innerText = `Guru: ${appState.settings.teacherName || 'Bapak/Ibu Guru'}`;
+            updateWaFormFields();
+            document.getElementById('waModal').classList.remove('hidden');
+        }
+
+        function closeWaModal() {
+            document.getElementById('waModal').classList.add('hidden');
+        }
+
+        function updateWaFormFields() {
+            const topic = document.getElementById('waTopic').value;
+            const fieldUjian = document.getElementById('waFieldUjian');
+            const fieldDetail = document.getElementById('waFieldDetail');
+            const labelDetail = document.getElementById('waFieldDetailLabel');
+
+            if (topic === "1") {
+                fieldUjian.classList.remove('hidden');
+                fieldDetail.classList.remove('hidden');
+                labelDetail.innerText = "Kendala yang Dialami *";
+            } else if (topic === "2") {
+                fieldUjian.classList.remove('hidden');
+                fieldDetail.classList.add('hidden');
+            } else if (topic === "3") {
+                fieldUjian.classList.add('hidden');
+                fieldDetail.classList.add('hidden');
+            } else if (topic === "4") {
+                fieldUjian.classList.add('hidden');
+                fieldDetail.classList.remove('hidden');
+                labelDetail.innerText = "Alasan Izin *";
+            } else if (topic === "5") {
+                fieldUjian.classList.add('hidden');
+                fieldDetail.classList.remove('hidden');
+                labelDetail.innerText = "Pertanyaan / Pesan *";
+            }
+        }
+
+        function sendWaMessage() {
+            const topic = document.getElementById('waTopic').value;
+            const nama = document.getElementById('waNamaSiswa').value.trim();
+            const kelas = document.getElementById('waKelas').value.trim();
+            const namaUjian = document.getElementById('waNamaUjian').value.trim();
+            const detail = document.getElementById('waDetailPesan').value.trim();
+            const teacherName = appState.settings.teacherName || "Bapak/Ibu Guru";
+
+            if (!nama || !kelas) {
+                alert('Silakan isi Nama dan Kelas terlebih dahulu!');
+                return;
+            }
+
+            let text = "";
+
+            if (topic === "1") {
+                if (!detail) { alert('Silakan isi kendala yang dialami!'); return; }
+                text = `Assalamu’alaikum Pak/Bu Guru ${teacherName} 🙏\n`;
+                text += `Saya ${nama} dari kelas ${kelas}.\n`;
+                text += `Saya sedang mengerjakan ujian ${namaUjian || 'interaktif'}, tetapi mengalami kendala saat mengerjakan.\n`;
+                text += `Kendala yang saya alami:\n${detail}\n`;
+                text += `Mohon bantuannya Pak/Bu Guru. Terima kasih 🙏\nWassalamu’alaikum.`;
+            } else if (topic === "2") {
+                text = `Assalamu’alaikum Pak/Bu Guru ${teacherName} 🙏\n`;
+                text += `Saya ${nama} dari kelas ${kelas}.\n`;
+                text += `Saya mengalami kendala dan tidak bisa masuk ke ujian ${namaUjian || 'interaktif'}.\n`;
+                text += `Mohon bantuannya Pak/Bu Guru agar saya dapat mengikuti ujian.\n`;
+                text += `Terima kasih 🙏`;
+            } else if (topic === "3") {
+                text = `Assalamu’alaikum Pak/Bu Guru ${teacherName} 🙏\n`;
+                text += `Saya ${nama} dari kelas ${kelas}.\n`;
+                text += `Saya mengalami kendala teknis saat menggunakan aplikasi portal CBT.\n`;
+                text += `Mohon bantuannya Pak/Bu Guru.\n`;
+                text += `Terima kasih 🙏`;
+            } else if (topic === "4") {
+                if (!detail) { alert('Silakan isi alasan izin!'); return; }
+                text = `Assalamu’alaikum Pak/Bu Guru ${teacherName} 🙏\n`;
+                text += `Saya ${nama} dari kelas ${kelas}.\n`;
+                text += `Saya ingin menyampaikan izin tidak dapat mengikuti pembelajaran/ujian pada hari ini karena ${detail}.\n`;
+                text += `Mohon izin dan pengertiannya Pak/Bu Guru.\n`;
+                text += `Terima kasih 🙏`;
+            } else if (topic === "5") {
+                if (!detail) { alert('Silakan isi pertanyaan / pesan Anda!'); return; }
+                text = `Assalamu’alaikum Pak/Bu Guru ${teacherName} 🙏\n`;
+                text += `Saya ${nama} dari kelas ${kelas}.\n`;
+                text += `Saya ingin bertanya mengenai pembelajaran/ujian.\n`;
+                text += `Pertanyaan saya:\n${detail}\n`;
+                text += `Mohon penjelasannya Pak/Bu Guru. Terima kasih 🙏`;
+            }
+
+            let phone = (appState.settings.teacherWa || "085655894533").replace(/[^0-9]/g, '');
+            if (phone.startsWith('0')) {
+                phone = '62' + phone.slice(1);
+            }
+
+            const targetUrl = `https://wa.me/${phone}?text=${encodeURIComponent(text)}`;
+            window.open(targetUrl, '_blank');
+            closeWaModal();
+        }
+    </script>
+</body>
+</html>
